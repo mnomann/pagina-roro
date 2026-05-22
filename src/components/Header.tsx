@@ -1,104 +1,82 @@
-import { useState, useEffect, useRef } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { Sun, Moon, Menu, X } from 'lucide-react'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { Menu, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useTheme } from '../hooks/useTheme'
 import type { NavLink } from '../types'
 
 const navLinks: NavLink[] = [
-  { label: 'Inicio', path: '/' },
-  { label: 'Proyectos', path: '/proyectos' },
-  { label: 'Sobre Mí', path: '/sobre-mi' },
-  { label: 'Contacto', path: '/contacto' },
+  { label: 'Inicio', href: '#hero' },
+  { label: 'Nodo GovTech', href: '#govtech' },
+  { label: 'Casos de Éxito', href: '#casos' },
+  { label: 'Capacidades', href: '#capacidades' },
+  { label: 'Contacto', href: '#contacto' },
 ]
 
+function handleSmoothScroll(href: string) {
+  const id = href.replace('#', '')
+  const element = document.getElementById(id)
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth' })
+  }
+}
+
 export default function Header() {
-  const { pathname } = useLocation()
-  const { theme, toggleTheme } = useTheme()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 })
-  const navRef = useRef<HTMLDivElement>(null)
 
-  const isActive = (path: string) => pathname === path
-
-  useEffect(() => {
-    const updateIndicator = () => {
-      const nav = navRef.current
-      if (!nav) return
-      const links = nav.querySelectorAll<HTMLAnchorElement>('a')
-      const activeIdx = navLinks.findIndex(l => l.path === pathname)
-      if (activeIdx < 0 || !links[activeIdx]) return
-
-      const navRect = nav.getBoundingClientRect()
-      const linkRect = links[activeIdx].getBoundingClientRect()
-
-      setIndicatorStyle({
-        left: linkRect.left - navRect.left,
-        width: linkRect.width,
-      })
+  const handleNavClick = (href: string) => {
+    setIsMenuOpen(false)
+    if (href === '#hero') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
     }
-
-    requestAnimationFrame(updateIndicator)
-    window.addEventListener('resize', updateIndicator)
-    return () => window.removeEventListener('resize', updateIndicator)
-  }, [pathname])
+    handleSmoothScroll(href)
+  }
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-surface/70 border-b border-border/50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+    <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-white/80 backdrop-blur-md border-b border-slate-200">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+        <div className="flex items-center justify-between h-full">
           <Link
             to="/"
-            className="text-2xl font-bold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent hover:opacity-80 transition-opacity"
+            className="text-2xl font-bold text-sky-600"
           >
-            nombre-generico
+            Nexxuv
           </Link>
 
           <nav
-            ref={navRef}
-            className="hidden md:flex items-center gap-1 relative"
+            className="hidden md:flex items-center gap-1"
             aria-label="Navegación principal"
           >
             {navLinks.map((link) => (
               <Link
-                key={link.path}
-                to={link.path}
-                className={`relative px-5 py-2.5 text-base font-medium rounded-lg transition-all ${
-                  isActive(link.path)
-                    ? 'text-accent'
-                    : 'text-text-secondary hover:text-text hover:bg-accent-soft'
-                }`}
+                key={link.href}
+                to="/"
+                onClick={(e) => {
+                  e.preventDefault()
+                  handleNavClick(link.href)
+                }}
+                className="px-4 py-2 rounded-lg text-slate-600 hover:text-sky-600 transition-colors"
               >
                 {link.label}
               </Link>
             ))}
-            {/* Indicador deslizante unico */}
-            <motion.div
-              className="absolute bottom-0 h-[3px] bg-accent rounded-full"
-              animate={{
-                left: indicatorStyle.left,
-                width: indicatorStyle.width,
+
+            <Link
+              to="/"
+              onClick={(e) => {
+                e.preventDefault()
+                handleNavClick('#contacto')
               }}
-              transition={{
-                type: 'spring',
-                stiffness: 400,
-                damping: 30,
-              }}
-            />
+              className="ml-2 px-5 py-2.5 rounded-lg bg-sky-600 text-white shadow-md hover:bg-sky-700 hover:scale-105 transition-all"
+            >
+              Contacto Institucional
+            </Link>
           </nav>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg text-text-secondary hover:text-text hover:bg-accent-soft transition-colors"
-              aria-label={theme === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro'}
-            >
-              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
-
+          <div className="flex items-center md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 rounded-lg text-text-secondary hover:text-text hover:bg-accent-soft transition-colors"
+              className="p-2 rounded-lg text-slate-600 hover:text-sky-600 transition-colors"
               aria-label={isMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
               aria-expanded={isMenuOpen}
             >
@@ -115,24 +93,33 @@ export default function Header() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="md:hidden border-t border-border overflow-hidden"
+            className="md:hidden border-t border-slate-200 bg-white overflow-hidden"
             aria-label="Navegación móvil"
           >
             <div className="px-4 py-3 space-y-1">
               {navLinks.map((link) => (
                 <Link
-                  key={link.path}
-                  to={link.path}
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`block px-4 py-2.5 rounded-lg text-base font-medium transition-colors ${
-                    isActive(link.path)
-                      ? 'text-accent bg-accent-soft'
-                      : 'text-text-secondary hover:text-text hover:bg-accent-soft'
-                  }`}
+                  key={link.href}
+                  to="/"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    handleNavClick(link.href)
+                  }}
+                  className="block px-4 py-2.5 rounded-lg text-slate-600 hover:text-sky-600 hover:bg-sky-50 transition-colors"
                 >
                   {link.label}
                 </Link>
               ))}
+              <Link
+                to="/"
+                onClick={(e) => {
+                  e.preventDefault()
+                  handleNavClick('#contacto')
+                }}
+                className="block px-4 py-2.5 rounded-lg bg-sky-600 text-white text-center shadow-md hover:bg-sky-700 transition-colors"
+              >
+                Contacto Institucional
+              </Link>
             </div>
           </motion.nav>
         )}
